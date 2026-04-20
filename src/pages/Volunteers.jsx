@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { getAll, create, update, remove } from '../store'
 import Modal from '../components/Modal'
+import { useToast } from '../components/Toast'
 
 const EMPTY = { name: '', email: '', course: '', year: '', skills: [], availability: '', deployments: 0 }
 const SKILL_OPTIONS = ['Project Management', 'Documentation', 'Community Organizing', 'Data Entry', 'Web Development', 'Technical Support', 'Teaching', 'Tutoring', 'First Aid', 'Health Education', 'Photography', 'Report Writing', 'Public Speaking']
 
 export default function Volunteers() {
+  const toast = useToast()
   const [items, setItems] = useState([])
   const [deployments, setDeployments] = useState([])
   const [search, setSearch] = useState('')
@@ -23,11 +25,12 @@ export default function Volunteers() {
   function handleSave(e) {
     e.preventDefault()
     const data = { ...form, deployments: parseInt(form.deployments) || 0 }
-    if (editId) update('volunteers', editId, data); else create('volunteers', data)
+    if (editId) { update('volunteers', editId, data); toast('Volunteer updated', 'success') }
+    else { create('volunteers', data); toast('Volunteer added', 'success') }
     setModal(null); reload()
   }
 
-  function handleDelete(id) { remove('volunteers', id); setDeleteConfirm(null); reload() }
+  function handleDelete(id) { remove('volunteers', id); setDeleteConfirm(null); reload(); toast('Volunteer removed', 'info') }
 
   function toggleSkill(skill) {
     const skills = form.skills || []
@@ -92,7 +95,7 @@ export default function Volunteers() {
             </div>
             <div className="form-group">
               <label className="form-label">Email</label>
-              <input type="email" className="form-input" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+              <input type="email" className="form-input" placeholder="user.email@gmail.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
             </div>
             <div className="form-row">
               <div className="form-group">

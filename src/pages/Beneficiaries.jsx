@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { getAll, create, update, remove } from '../store'
 import Modal from '../components/Modal'
+import { useToast } from '../components/Toast'
 
 const GENDERS = ['Male', 'Female', 'Other']
 const EMPTY = { name: '', age: '', gender: 'Female', address: '', contact: '', programIds: [], registeredDate: new Date().toISOString().split('T')[0] }
 
 export default function Beneficiaries() {
+  const toast = useToast()
   const [items, setItems] = useState([])
   const [programs, setPrograms] = useState([])
   const [search, setSearch] = useState('')
@@ -23,11 +25,12 @@ export default function Beneficiaries() {
   function handleSave(e) {
     e.preventDefault()
     const data = { ...form, age: parseInt(form.age) || 0 }
-    if (editId) update('beneficiaries', editId, data); else create('beneficiaries', data)
+    if (editId) { update('beneficiaries', editId, data); toast('Beneficiary updated', 'success') }
+    else { create('beneficiaries', data); toast('Beneficiary registered', 'success') }
     setModal(null); reload()
   }
 
-  function handleDelete(id) { remove('beneficiaries', id); setDeleteConfirm(null); reload() }
+  function handleDelete(id) { remove('beneficiaries', id); setDeleteConfirm(null); reload(); toast('Beneficiary removed', 'info') }
 
   function toggleProgram(pid) {
     const ids = form.programIds || []

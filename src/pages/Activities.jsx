@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { getAll, create, update, remove } from '../store'
 import Modal from '../components/Modal'
+import { useToast } from '../components/Toast'
 
 const EMPTY = { programId: '', title: '', date: '', location: '', description: '', participants: '', facilitator: '' }
 
 export default function Activities() {
+  const toast = useToast()
   const [items, setItems] = useState([])
   const [programs, setPrograms] = useState([])
   const [search, setSearch] = useState('')
@@ -23,11 +25,12 @@ export default function Activities() {
   function handleSave(e) {
     e.preventDefault()
     const data = { ...form, programId: parseInt(form.programId) || 0, participants: parseInt(form.participants) || 0 }
-    if (editId) update('activities', editId, data); else create('activities', data)
+    if (editId) { update('activities', editId, data); toast('Activity updated', 'success') }
+    else { create('activities', data); toast('Activity logged', 'success') }
     setModal(null); reload()
   }
 
-  function handleDelete(id) { remove('activities', id); setDeleteConfirm(null); reload() }
+  function handleDelete(id) { remove('activities', id); setDeleteConfirm(null); reload(); toast('Activity deleted', 'info') }
 
   function getProgramTitle(pid) {
     return programs.find(p => p.id === pid)?.title || 'Unknown'

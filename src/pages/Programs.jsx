@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { getAll, create, update, remove } from '../store'
 import Modal from '../components/Modal'
+import { useToast } from '../components/Toast'
 
 const STATUSES = ['Active', 'Planned', 'Completed']
 const SDG_OPTIONS = ['SDG 3', 'SDG 4', 'SDG 10', 'SDG 11', 'SDG 17']
 const EMPTY = { title: '', description: '', status: 'Planned', sdgTags: [], location: '', startDate: '', endDate: '', targetBeneficiaries: '', coordinator: '' }
 
 export default function Programs() {
+  const toast = useToast()
   const [items, setItems] = useState([])
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('All')
@@ -24,12 +26,12 @@ export default function Programs() {
   function handleSave(e) {
     e.preventDefault()
     const data = { ...form, targetBeneficiaries: parseInt(form.targetBeneficiaries) || 0 }
-    if (editId) { update('programs', editId, data) }
-    else { create('programs', data) }
+    if (editId) { update('programs', editId, data); toast('Program updated successfully', 'success') }
+    else { create('programs', data); toast('Program created successfully', 'success') }
     setModal(null); reload()
   }
 
-  function handleDelete(id) { remove('programs', id); setDeleteConfirm(null); reload() }
+  function handleDelete(id) { remove('programs', id); setDeleteConfirm(null); reload(); toast('Program deleted', 'info') }
 
   function toggleSdg(tag) {
     const tags = form.sdgTags || []

@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react'
-import { getAll, getDashboardStats } from '../store'
+import { useState, useEffect, useRef } from 'react'
+import { getAll, getDashboardStats, exportAllData, importData, getConnectionMode } from '../store'
+import { useToast } from '../components/Toast'
 
 export default function Reports() {
+  const toast = useToast()
+  const backupInputRef = useRef(null)
   const [stats, setStats] = useState(null)
   const [programs, setPrograms] = useState([])
   const [activities, setActivities] = useState([])
@@ -54,6 +57,36 @@ export default function Reports() {
     exportPrograms()
     setTimeout(exportBeneficiaries, 300)
     setTimeout(exportActivities, 600)
+    toast('All CSV reports exported', 'success')
+  }
+
+  // ── Full Data Backup (JSON) ────────────────
+  function handleBackup() {
+    const data = exportAllData()
+    const json = JSON.stringify(data, null, 2)
+    const blob = new Blob([json], { type: 'application/json' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `communitybridge_backup_${new Date().toISOString().split('T')[0]}.json`
+    a.click()
+    toast('Full data backup downloaded', 'success')
+  }
+
+  function handleRestore(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const success = importData(ev.target.result)
+      if (success) {
+        toast('Data restored successfully! Refreshing...', 'success')
+        setTimeout(() => window.location.reload(), 1000)
+      } else {
+        toast('Failed to restore data — invalid file', 'error')
+      }
+    }
+    reader.readAsText(file)
+    e.target.value = ''
   }
 
   // Program-wise summary
@@ -112,6 +145,24 @@ export default function Reports() {
           <button className="btn btn-primary" onClick={exportAll}>
             📦 Export All Reports
           </button>
+        </div>
+      </div>
+
+      {/* Data Backup & Restore */}
+      <div className="report-actions">
+        <h3 className="report-section-title">💾 Data Backup & Restore</h3>
+        <p style={{ fontSize: '.82rem', color: '#64748b', marginBottom: '1rem' }}>
+          Back up your entire research database as a JSON file. You can restore it later on any device.
+          Currently running in <strong>{getConnectionMode() === 'cloud' ? '☁️ Cloud Sync' : '💾 Local'}</strong> mode.
+        </p>
+        <div className="export-btns">
+          <button className="btn btn-secondary" onClick={handleBackup}>
+            ⬇️ Download Full Backup (JSON)
+          </button>
+          <button className="btn btn-secondary" onClick={() => backupInputRef.current?.click()}>
+            ⬆️ Restore from Backup
+          </button>
+          <input ref={backupInputRef} type="file" accept=".json" style={{ display: 'none' }} onChange={handleRestore} />
         </div>
       </div>
 

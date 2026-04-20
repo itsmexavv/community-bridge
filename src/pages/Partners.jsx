@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { getAll, create, update, remove } from '../store'
 import Modal from '../components/Modal'
+import { useToast } from '../components/Toast'
 
 const TYPES = ['Government Agency', 'Local Government', 'NGO', 'Hospital', 'Academic', 'Private', 'Other']
 const MOA_STATUSES = ['Active', 'For Renewal', 'Expired', 'Pending']
 const EMPTY = { name: '', type: 'NGO', contactPerson: '', email: '', phone: '', moaStatus: 'Pending', moaExpiry: '' }
 
 export default function Partners() {
+  const toast = useToast()
   const [items, setItems] = useState([])
   const [search, setSearch] = useState('')
   const [modal, setModal] = useState(null)
@@ -22,11 +24,12 @@ export default function Partners() {
 
   function handleSave(e) {
     e.preventDefault()
-    if (editId) update('partners', editId, form); else create('partners', form)
+    if (editId) { update('partners', editId, form); toast('Partner updated', 'success') }
+    else { create('partners', form); toast('Partner added', 'success') }
     setModal(null); reload()
   }
 
-  function handleDelete(id) { remove('partners', id); setDeleteConfirm(null); reload() }
+  function handleDelete(id) { remove('partners', id); setDeleteConfirm(null); reload(); toast('Partner removed', 'info') }
 
   const filtered = items.filter(p =>
     !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.type?.toLowerCase().includes(search.toLowerCase())
