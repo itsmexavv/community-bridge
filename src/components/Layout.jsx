@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { logout } from '../store'
+import uslLogo from '../assets/usl-logo.png'
 
 const NAV_ITEMS = [
   { path: '/', label: 'Dashboard', icon: '📊' },
@@ -26,7 +27,7 @@ export default function Layout({ children, session, onLogout }) {
       <aside className="sidebar">
         <div className="sidebar-header">
           <div className="sidebar-logo">
-          <img src="/usl-logo.png" alt="USL Logo" className="sidebar-logo-img" />
+          <img src={uslLogo} alt="USL Logo" className="sidebar-logo-img" />
           <div>
             <div className="logo-title">CommunityBridge</div>
             <div className="logo-subtitle">University of Saint Louis</div>

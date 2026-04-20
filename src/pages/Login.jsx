@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { login } from '../store'
+import uslLogo from '../assets/usl-logo.png'
 
 export default function Login({ onLogin }) {
   const [email, setEmail] = useState('')
@@ -35,7 +36,7 @@ export default function Login({ onLogin }) {
       <div className="login-card">
         <div className="login-header">
           <div className="login-logo">
-            <img src="/usl-logo.png" alt="USL Logo" style={{ width: '85px', height: '85px' }} />
+            <img src={uslLogo} alt="USL Logo" style={{ width: '85px', height: '85px' }} />
           </div>
           <h1 className="login-title">CommunityBridge</h1>
           <p className="login-subtitle">Community Extension Program Management System</p>
