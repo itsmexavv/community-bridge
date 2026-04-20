@@ -35,7 +35,7 @@ export default function Login({ onLogin }) {
       <div className="login-card">
         <div className="login-header">
           <div className="login-logo">
-            <img src="/usl-logo.svg" alt="USL Logo" style={{ width: '72px', height: '72px' }} />
+            <img src="/usl-logo.png" alt="USL Logo" style={{ width: '85px', height: '85px' }} />
           </div>
           <h1 className="login-title">CommunityBridge</h1>
           <p className="login-subtitle">Community Extension Program Management System</p>

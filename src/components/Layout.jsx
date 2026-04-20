@@ -26,7 +26,7 @@ export default function Layout({ children, session, onLogout }) {
       <aside className="sidebar">
         <div className="sidebar-header">
           <div className="sidebar-logo">
-          <img src="/usl-logo.svg" alt="USL Logo" className="sidebar-logo-img" />
+          <img src="/usl-logo.png" alt="USL Logo" className="sidebar-logo-img" />
           <div>
             <div className="logo-title">CommunityBridge</div>
             <div className="logo-subtitle">University of Saint Louis</div>
