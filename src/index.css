@@ -48,7 +48,7 @@ body{font-family:'Montserrat',system-ui,sans-serif;background:var(--bg);color:va
 
 /* ── Login ────────────────────────── */
 .login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--primary);position:relative;overflow:hidden}
-.login-bg{position:absolute;inset:0;background-image:url('../assets/usl-logo.png');background-position:center;background-repeat:no-repeat;background-size:120vh;opacity:0.04;mix-blend-mode:luminosity}
+.login-bg{position:absolute;inset:0;background-image:url('./assets/usl-logo.png');background-position:center;background-repeat:no-repeat;background-size:120vh;opacity:0.04;mix-blend-mode:luminosity}
 .login-orb{display:none}
 .login-card{position:relative;background:#fff;border-top:6px solid var(--gold);border-radius:12px;padding:3rem 2.5rem;width:100%;max-width:440px;color:var(--text);box-shadow:0 20px 40px rgba(0,0,0,.2)}
 .login-header{text-align:center;margin-bottom:2rem}
