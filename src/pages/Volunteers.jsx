@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getAll, create, update, remove } from '../store'
 import Modal from '../components/Modal'
+import DataTable from '../components/DataTable'
 import { useToast } from '../components/Toast'
 
 const EMPTY = { name: '', email: '', course: '', year: '', skills: [], availability: '', deployments: 0 }
@@ -10,7 +11,6 @@ export default function Volunteers() {
   const toast = useToast()
   const [items, setItems] = useState([])
   const [deployments, setDeployments] = useState([])
-  const [search, setSearch] = useState('')
   const [modal, setModal] = useState(null)
   const [form, setForm] = useState(EMPTY)
   const [editId, setEditId] = useState(null)
@@ -37,9 +37,43 @@ export default function Volunteers() {
     setForm({ ...form, skills: skills.includes(skill) ? skills.filter(s => s !== skill) : [...skills, skill] })
   }
 
-  const filtered = items.filter(v =>
-    !search || v.name.toLowerCase().includes(search.toLowerCase()) || v.course?.toLowerCase().includes(search.toLowerCase())
-  )
+  const columns = [
+    { key: 'name', header: 'Volunteer', className: 'td-primary', render: v => (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="vol-avatar" style={{ width: '30px', height: '30px', fontSize: '0.65rem' }}>
+          {v.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+        </div>
+        <div>
+          <div>{v.name}</div>
+          <div className="vol-meta" style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{v.course} · {v.year}</div>
+        </div>
+      </div>
+    )},
+    { key: 'email', header: 'Email' },
+    { key: 'availability', header: 'Availability' },
+    { key: 'hours', header: 'Hours', render: v => <span className="hours-badge">{getVolunteerHours(v.id)}h</span> },
+    { key: 'skills', header: 'Skills', sortable: false, render: v => (
+      <div className="vol-skills" style={{ marginBottom: 0 }}>
+        {(v.skills || []).slice(0, 3).map(s => <span key={s} className="skill-tag">{s}</span>)}
+        {(v.skills || []).length > 3 && <span className="skill-tag">+{v.skills.length - 3}</span>}
+      </div>
+    )},
+    { key: 'deployments', header: 'Deployments' },
+    { key: 'actions', header: 'Actions', sortable: false, render: v => (
+      <div className="action-btns">
+        <button className="btn-icon" onClick={() => openEdit(v)} title="Edit">✏️</button>
+        <button className="btn-icon danger" onClick={() => setDeleteConfirm(v.id)} title="Delete">🗑️</button>
+      </div>
+    )}
+  ]
+
+  const handleBulkDelete = (selectedIds) => {
+    if (window.confirm(`Are you sure you want to delete ${selectedIds.length} volunteers?`)) {
+      selectedIds.forEach(id => remove('volunteers', id))
+      reload()
+      toast(`Removed ${selectedIds.length} volunteers`, 'info')
+    }
+  }
 
   function getVolunteerHours(volunteerId) {
     return deployments.filter(d => d.volunteerId === volunteerId).reduce((sum, d) => sum + (d.hours || 0), 0)
@@ -47,44 +81,16 @@ export default function Volunteers() {
 
   return (
     <div className="page-content">
-      <div className="toolbar">
-        <div className="toolbar-left">
-          <input className="form-input search-input" placeholder="Search volunteers..." value={search} onChange={e => setSearch(e.target.value)} />
-          <span className="result-count">{filtered.length} volunteer{filtered.length !== 1 ? 's' : ''}</span>
-        </div>
-        <button className="btn btn-primary" onClick={openAdd}>+ Add Volunteer</button>
-      </div>
-
-      <div className="card-grid">
-        {filtered.length === 0 ? (
-          <div className="empty-state">No volunteers found</div>
-        ) : filtered.map(v => (
-          <div className="volunteer-card" key={v.id}>
-            <div className="vol-card-header">
-              <div className="vol-avatar">{v.name.split(' ').map(n => n[0]).join('').slice(0, 2)}</div>
-              <div>
-                <div className="vol-name">{v.name}</div>
-                <div className="vol-meta">{v.course} · {v.year}</div>
-              </div>
-              <div className="action-btns">
-                <button className="btn-icon small" onClick={() => openEdit(v)} title="Edit">✏️</button>
-                <button className="btn-icon small danger" onClick={() => setDeleteConfirm(v.id)} title="Delete">🗑️</button>
-              </div>
-            </div>
-            <div className="vol-details">
-              <div className="vol-detail-row"><span className="vol-label">Email:</span><span>{v.email}</span></div>
-              <div className="vol-detail-row"><span className="vol-label">Availability:</span><span>{v.availability}</span></div>
-              <div className="vol-detail-row"><span className="vol-label">Hours Served:</span><span className="hours-badge">{getVolunteerHours(v.id)}h</span></div>
-            </div>
-            <div className="vol-skills">
-              {(v.skills || []).map(s => <span key={s} className="skill-tag">{s}</span>)}
-            </div>
-            <div className="vol-deployments">
-              <span className="deployment-count">{v.deployments} deployment{v.deployments !== 1 ? 's' : ''}</span>
-            </div>
-          </div>
-        ))}
-      </div>
+      <DataTable 
+        data={items}
+        columns={columns}
+        searchKeys={['name', 'email', 'course', 'skills']}
+        searchPlaceholder="Search volunteers..."
+        actions={<button className="btn btn-primary" onClick={openAdd}>+ Add Volunteer</button>}
+        bulkActions={[
+          { label: 'Delete Selected', danger: true, onClick: handleBulkDelete }
+        ]}
+      />
 
       {modal && (
         <Modal title={modal === 'add' ? 'Add Volunteer' : 'Edit Volunteer'} onClose={() => setModal(null)}>

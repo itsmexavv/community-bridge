@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getAll, create, update, remove } from '../store'
 import Modal from '../components/Modal'
+import DataTable from '../components/DataTable'
 import { useToast } from '../components/Toast'
 
 const STATUSES = ['Active', 'Planned', 'Completed']
@@ -10,7 +11,6 @@ const EMPTY = { title: '', description: '', status: 'Planned', sdgTags: [], loca
 export default function Programs() {
   const toast = useToast()
   const [items, setItems] = useState([])
-  const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('All')
   const [modal, setModal] = useState(null)  // null | 'add' | 'edit'
   const [form, setForm] = useState(EMPTY)
@@ -38,69 +38,60 @@ export default function Programs() {
     setForm({ ...form, sdgTags: tags.includes(tag) ? tags.filter(t => t !== tag) : [...tags, tag] })
   }
 
-  const filtered = items.filter(p => {
+  const filteredByStatus = items.filter(p => {
     if (filterStatus !== 'All' && p.status !== filterStatus) return false
-    if (search && !p.title.toLowerCase().includes(search.toLowerCase()) && !p.coordinator?.toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
 
+  const columns = [
+    { key: 'title', header: 'Program Title', className: 'td-primary' },
+    { key: 'status', header: 'Status', render: p => <span className={`status-badge ${p.status.toLowerCase()}`}>{p.status}</span> },
+    { key: 'sdgTags', header: 'SDG Tags', sortable: false, render: p => (
+      <div className="tag-group">
+        {(p.sdgTags || []).map(t => <span key={t} className="sdg-tag">{t}</span>)}
+      </div>
+    )},
+    { key: 'location', header: 'Location' },
+    { key: 'startDate', header: 'Duration', render: p => <span className="td-nowrap">{p.startDate} → {p.endDate}</span> },
+    { key: 'targetBeneficiaries', header: 'Target' },
+    { key: 'coordinator', header: 'Coordinator' },
+    { key: 'actions', header: 'Actions', sortable: false, render: p => (
+      <div className="action-btns">
+        <button className="btn-icon" onClick={() => openEdit(p)} title="Edit">✏️</button>
+        <button className="btn-icon danger" onClick={() => setDeleteConfirm(p.id)} title="Delete">🗑️</button>
+      </div>
+    )}
+  ]
+
+  const filterNode = (
+    <div className="filter-pills">
+      {['All', ...STATUSES].map(s => (
+        <button key={s} className={`pill ${filterStatus === s ? 'active' : ''}`} onClick={() => setFilterStatus(s)}>{s}</button>
+      ))}
+    </div>
+  )
+
+  const handleBulkDelete = (selectedIds) => {
+    if (window.confirm(`Are you sure you want to delete ${selectedIds.length} programs?`)) {
+      selectedIds.forEach(id => remove('programs', id))
+      reload()
+      toast(`Deleted ${selectedIds.length} programs`, 'info')
+    }
+  }
+
   return (
     <div className="page-content">
-      {/* Toolbar */}
-      <div className="toolbar">
-        <div className="toolbar-left">
-          <input className="form-input search-input" placeholder="Search programs..." value={search} onChange={e => setSearch(e.target.value)} />
-          <div className="filter-pills">
-            {['All', ...STATUSES].map(s => (
-              <button key={s} className={`pill ${filterStatus === s ? 'active' : ''}`} onClick={() => setFilterStatus(s)}>{s}</button>
-            ))}
-          </div>
-        </div>
-        <button className="btn btn-primary" onClick={openAdd}>+ Add Program</button>
-      </div>
-
-      {/* Table */}
-      <div className="table-wrap">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Program Title</th>
-              <th>Status</th>
-              <th>SDG Tags</th>
-              <th>Location</th>
-              <th>Duration</th>
-              <th>Target</th>
-              <th>Coordinator</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr><td colSpan="8" className="empty-row">No programs found</td></tr>
-            ) : filtered.map(p => (
-              <tr key={p.id}>
-                <td className="td-primary">{p.title}</td>
-                <td><span className={`status-badge ${p.status.toLowerCase()}`}>{p.status}</span></td>
-                <td>
-                  <div className="tag-group">
-                    {(p.sdgTags || []).map(t => <span key={t} className="sdg-tag">{t}</span>)}
-                  </div>
-                </td>
-                <td>{p.location}</td>
-                <td className="td-nowrap">{p.startDate} → {p.endDate}</td>
-                <td>{p.targetBeneficiaries}</td>
-                <td>{p.coordinator}</td>
-                <td>
-                  <div className="action-btns">
-                    <button className="btn-icon" onClick={() => openEdit(p)} title="Edit">✏️</button>
-                    <button className="btn-icon danger" onClick={() => setDeleteConfirm(p.id)} title="Delete">🗑️</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable 
+        data={filteredByStatus}
+        columns={columns}
+        searchKeys={['title', 'coordinator', 'location']}
+        searchPlaceholder="Search programs..."
+        filterNode={filterNode}
+        actions={<button className="btn btn-primary" onClick={openAdd}>+ Add Program</button>}
+        bulkActions={[
+          { label: 'Delete Selected', danger: true, onClick: handleBulkDelete }
+        ]}
+      />
 
       {/* Add/Edit Modal */}
       {modal && (

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getAll, create, update, remove } from '../store'
 import Modal from '../components/Modal'
+import DataTable from '../components/DataTable'
 import { useToast } from '../components/Toast'
 
 const GENDERS = ['Male', 'Female', 'Other']
@@ -10,7 +11,6 @@ export default function Beneficiaries() {
   const toast = useToast()
   const [items, setItems] = useState([])
   const [programs, setPrograms] = useState([])
-  const [search, setSearch] = useState('')
   const [modal, setModal] = useState(null)
   const [form, setForm] = useState(EMPTY)
   const [editId, setEditId] = useState(null)
@@ -37,64 +37,49 @@ export default function Beneficiaries() {
     setForm({ ...form, programIds: ids.includes(pid) ? ids.filter(i => i !== pid) : [...ids, pid] })
   }
 
-  const filtered = items.filter(b =>
-    !search || b.name.toLowerCase().includes(search.toLowerCase()) || b.address?.toLowerCase().includes(search.toLowerCase())
-  )
+  const columns = [
+    { key: 'name', header: 'Full Name', className: 'td-primary' },
+    { key: 'age', header: 'Age' },
+    { key: 'gender', header: 'Gender' },
+    { key: 'address', header: 'Address' },
+    { key: 'contact', header: 'Contact' },
+    { key: 'programIds', header: 'Programs Enrolled', sortable: false, render: b => (
+      <div className="tag-group">
+        {(b.programIds || []).map(pid => {
+          const prog = programs.find(p => p.id === pid)
+          return prog ? <span key={pid} className="program-tag">{prog.title.length > 25 ? prog.title.slice(0, 25) + '…' : prog.title}</span> : null
+        })}
+      </div>
+    )},
+    { key: 'registeredDate', header: 'Registered', render: b => <span className="td-nowrap">{b.registeredDate}</span> },
+    { key: 'actions', header: 'Actions', sortable: false, render: b => (
+      <div className="action-btns">
+        <button className="btn-icon" onClick={() => openEdit(b)} title="Edit">✏️</button>
+        <button className="btn-icon danger" onClick={() => setDeleteConfirm(b.id)} title="Delete">🗑️</button>
+      </div>
+    )}
+  ]
+
+  const handleBulkDelete = (selectedIds) => {
+    if (window.confirm(`Are you sure you want to delete ${selectedIds.length} beneficiaries?`)) {
+      selectedIds.forEach(id => remove('beneficiaries', id))
+      reload()
+      toast(`Removed ${selectedIds.length} beneficiaries`, 'info')
+    }
+  }
 
   return (
     <div className="page-content">
-      <div className="toolbar">
-        <div className="toolbar-left">
-          <input className="form-input search-input" placeholder="Search beneficiaries..." value={search} onChange={e => setSearch(e.target.value)} />
-          <span className="result-count">{filtered.length} record{filtered.length !== 1 ? 's' : ''}</span>
-        </div>
-        <button className="btn btn-primary" onClick={openAdd}>+ Add Beneficiary</button>
-      </div>
-
-      <div className="table-wrap">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Full Name</th>
-              <th>Age</th>
-              <th>Gender</th>
-              <th>Address</th>
-              <th>Contact</th>
-              <th>Programs Enrolled</th>
-              <th>Registered</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr><td colSpan="8" className="empty-row">No beneficiaries found</td></tr>
-            ) : filtered.map(b => (
-              <tr key={b.id}>
-                <td className="td-primary">{b.name}</td>
-                <td>{b.age}</td>
-                <td>{b.gender}</td>
-                <td>{b.address}</td>
-                <td>{b.contact}</td>
-                <td>
-                  <div className="tag-group">
-                    {(b.programIds || []).map(pid => {
-                      const prog = programs.find(p => p.id === pid)
-                      return prog ? <span key={pid} className="program-tag">{prog.title.length > 25 ? prog.title.slice(0, 25) + '…' : prog.title}</span> : null
-                    })}
-                  </div>
-                </td>
-                <td className="td-nowrap">{b.registeredDate}</td>
-                <td>
-                  <div className="action-btns">
-                    <button className="btn-icon" onClick={() => openEdit(b)} title="Edit">✏️</button>
-                    <button className="btn-icon danger" onClick={() => setDeleteConfirm(b.id)} title="Delete">🗑️</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable 
+        data={items}
+        columns={columns}
+        searchKeys={['name', 'address', 'contact']}
+        searchPlaceholder="Search beneficiaries..."
+        actions={<button className="btn btn-primary" onClick={openAdd}>+ Add Beneficiary</button>}
+        bulkActions={[
+          { label: 'Delete Selected', danger: true, onClick: handleBulkDelete }
+        ]}
+      />
 
       {modal && (
         <Modal title={modal === 'add' ? 'Register Beneficiary' : 'Edit Beneficiary'} onClose={() => setModal(null)}>
