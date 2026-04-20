@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <!-- Shield Background -->
+  <path d="M60 8L15 28v36c0 28 45 48 45 48s45-20 45-48V28L60 8z" fill="#003366" stroke="#FFCC00" stroke-width="3"/>
+  <!-- Inner Shield -->
+  <path d="M60 18L25 34v28c0 22 35 38 35 38s35-16 35-38V34L60 18z" fill="#001a33"/>
+  <!-- Cross -->
+  <rect x="56" y="28" width="8" height="40" rx="2" fill="#FFCC00"/>
+  <rect x="42" y="42" width="36" height="8" rx="2" fill="#FFCC00"/>
+  <!-- Lily petals (simplified) -->
+  <ellipse cx="44" cy="78" rx="6" ry="10" fill="#FFCC00" opacity="0.7" transform="rotate(-15 44 78)"/>
+  <ellipse cx="60" cy="75" rx="5" ry="11" fill="#FFCC00" opacity="0.8"/>
+  <ellipse cx="76" cy="78" rx="6" ry="10" fill="#FFCC00" opacity="0.7" transform="rotate(15 76 78)"/>
+  <!-- Sword hilt -->
+  <rect x="57" y="88" width="6" height="14" rx="1" fill="#FFCC00" opacity="0.6"/>
+  <rect x="52" y="95" width="16" height="3" rx="1" fill="#FFCC00" opacity="0.6"/>
+  <!-- Text Arc: USL -->
+  <text x="60" y="105" text-anchor="middle" font-family="serif" font-size="9" font-weight="bold" fill="#FFCC00" letter-spacing="4">USL</text>
+</svg>
